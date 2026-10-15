@@ -50,6 +50,15 @@ app.get("/", async (req, res) => {
     `))
   }
 
+  // Challenge (Passo 6): ask the backend how many messages the database has.
+  let total = data.messages.length
+  try {
+    const statsRes = await fetch(`${backendUrl}/api/stats`)
+    if (statsRes.ok) total = (await statsRes.json()).total_messages
+  } catch (err) {
+    console.error(`Could not reach the backend stats at ${backendUrl}:`, err.message)
+  }
+
   const list = data.messages
     .map((m) => `<li><b>${escape(m.author)}</b>: ${escape(m.text)} <small>(${m.created_at})</small></li>`)
     .join("")
@@ -62,6 +71,7 @@ app.get("/", async (req, res) => {
       <input name="text" placeholder="Write a message" maxlength="280" required size="35">
       <button>Post</button>
     </form>
+    <p>Total messages: <b>${total}</b></p>
     <ul>${list || "<li>No messages yet.</li>"}</ul>
     <p>Answered by backend number <b>${escape(data.backend_number)}</b>
        (hostname <code>${escape(data.backend_hostname)}</code>)</p>
